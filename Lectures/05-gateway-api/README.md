@@ -476,29 +476,53 @@ kind create cluster --name=gateway-api --config=00-kind-cluster.yaml
 
 ## **Step 2: Install Gateway API CRDs**
 
-The Gateway API introduces several new resource types that NGF uses. Install them with:
+The Gateway API introduces several new resource types that NGINX Gateway Fabric depends on. Install the Gateway API CRDs using the following command:
 
 ```bash
 kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.1.0" | kubectl apply -f -
 ```
 
-**What gets installed (1-liners):**
+---
+
+### ⚠️ **Important note on versions (read carefully)**
+
+In **Step 3**, we install the NGINX Gateway Fabric **controller using Helm**, which by default installs the **latest available version** of the controller.
+
+Because of this, it is **critical** that the Gateway API CRDs installed in this step **match the same release version**. Installing older CRDs with a newer controller can lead to issues such as controller crashes or missing resources (for example, `BackendTLSPolicy`).
+
+Before running the above command, **check the latest version mentioned in the official documentation**:
+[https://docs.nginx.com/nginx-gateway-fabric/install/helm/](https://docs.nginx.com/nginx-gateway-fabric/install/helm/)
+
+Then, replace `v2.1.0` in the command with the **latest version shown there**. For example:
+
+```bash
+kubectl kustomize "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v2.3.0" | kubectl apply -f -
+```
+
+This ensures that the **CRDs and controller remain version-aligned**.
+
+---
+
+### **What gets installed (1-liners)**
 
 * **GatewayClass** – Defines a class of gateways (cluster-wide template for data planes)
-* **Gateway** – An instance of a GatewayClass (control plane + network listener config)
-* **HTTPRoute** – Rules mapping incoming HTTP requests to backend services
-* **GRPCRoute** – Same as HTTPRoute but for gRPC traffic
-* **ReferenceGrant** – Allows cross-namespace resource referencing
+* **Gateway** – An instance of a GatewayClass (control plane and listener configuration)
+* **HTTPRoute** – Rules that route HTTP traffic to backend services
+* **GRPCRoute** – Similar to HTTPRoute, but for gRPC traffic
+* **ReferenceGrant** – Allows controlled cross-namespace references
 
-Verify:
+---
+
+### Verify installation
 
 ```bash
 kubectl api-resources | grep gateway
 ```
 
-> NGF currently supports `HTTPRoute` and `GRPCRoute` from the Gateway API’s standard channel.
-`TLSRoute`, `TCPRoute`, and `UDPRoute` are not supported yet, but may be introduced in future releases as the Gateway API evolves and NGF adds more protocol capabilities.
+---
 
+> NGF currently supports `HTTPRoute` and `GRPCRoute` from the Gateway API standard channel.
+> `TLSRoute`, `TCPRoute`, and `UDPRoute` are not supported yet, but may be introduced in future releases as the Gateway API and NGF evolve.
 
 ---
 
